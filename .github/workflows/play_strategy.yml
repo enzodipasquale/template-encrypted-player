@@ -1,0 +1,58 @@
+name: Play Strategy
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  play:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Import GPG key
+        env:
+          GPG_PRIVATE_KEY_B64: ${{ secrets.GPG_PRIVATE_KEY_B64 }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          if [ -z "$GPG_PRIVATE_KEY_B64" ] || [ -z "$GPG_PASSPHRASE" ]; then
+            echo "Missing GPG secrets" >&2
+            exit 1
+          fi
+          echo "$GPG_PRIVATE_KEY_B64" | base64 -d > private-key.asc
+          gpg --batch --yes --passphrase "$GPG_PASSPHRASE" --import private-key.asc
+          rm -f private-key.asc
+
+      - name: Decrypt strategy
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          gpg --batch --yes --passphrase "$GPG_PASSPHRASE" \
+            --output strategy.py \
+            --decrypt strategy.py.gpg
+
+      - name: Run strategy
+        env:
+          SERVER_URL: ${{ secrets.SERVER_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PLAYER_NAME: ${{ secrets.PLAYER_NAME }}
+        run: python bot.py run
+
+      - name: Clean plaintext strategy
+        if: always()
+        run: rm -f strategy.py
+
