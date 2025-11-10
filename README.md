@@ -11,6 +11,7 @@ Use this starter when you want a public repository (free GitHub Actions minutes)
 - `.github/workflows/play_strategy.yml` – scheduled workflow (every five minutes) that decrypts, runs, and cleans up.
 - `.gitignore` – ignores `private-key.asc` artefacts and virtualenv clutter.
 - `requirements.txt` – minimal dependency list (`requests`, `numpy`).
+- `scripts/setup_encryption.py` – one-shot helper to generate/refresh the encrypted payload.
 
 ## Quick Start
 
@@ -33,17 +34,22 @@ Use this starter when you want a public repository (free GitHub Actions minutes)
    - Edit `strategy.py` and implement `strategy(state)` just like the plain template.
    - Test locally with decrypted files present (see “Local testing” below).
 
-4. **Encrypt it**
+4. **Generate the encrypted payload in one step**
 
    ```bash
-   python bot.py encrypt --recipient "YOUR NAME (penalty bot)"
+   python scripts/setup_encryption.py --recipient "YOUR NAME (penalty bot)"
    ```
 
-   This overwrites `strategy.py.gpg` and writes `private-key.asc` + `private-key.asc.b64`. Commit **only** the `.gpg` file; keep the others secret.
+   - Creates the GPG key (if missing)
+   - Overwrites `strategy.py.gpg`
+   - Emits `private-key.asc` and `private-key.asc.b64`
 
-5. **Clean up plaintext**
+5. **Copy secrets and clean up**
 
-   After encrypting, stash or back up `strategy.py` outside your git history (e.g. `git restore strategy.py` before committing). Remove `private-key.asc` after copying its base64 variant into GitHub secrets.
+   - Paste the contents of `private-key.asc.b64` into the `GPG_PRIVATE_KEY_B64` secret.
+   - Store the passphrase you entered in `GPG_PASSPHRASE`.
+   - Delete `private-key.asc` and `private-key.asc.b64` after copying.
+   - Stash or restore `strategy.py` before committing so the plaintext never lands in git.
 
 6. **Add GitHub secrets** (in your public fork: Settings → Secrets and variables → Actions)
    - `SERVER_URL`
@@ -91,7 +97,7 @@ Ensure the decrypted file sits next to `bot.py`. Before committing, restore or s
 ## Updating your strategy
 
 1. Edit `strategy.py` and test locally (`python bot.py run`).
-2. Re-run the encryption helper (`python bot.py encrypt --recipient ...`).
+2. Re-run the helper: `python scripts/setup_encryption.py --recipient "YOUR NAME (penalty bot)"`.
 3. Commit and push the new `strategy.py.gpg` (after restoring the plaintext file).
 
 ## Safety notes

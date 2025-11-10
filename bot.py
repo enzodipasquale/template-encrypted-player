@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
-"""CLI for running and encrypting the strategy."""
+"""CLI for running the strategy once as a local smoke test."""
 
 from __future__ import annotations
 
 import argparse
-import base64
 import os
-import subprocess
-from pathlib import Path
 from typing import Any, Dict
 
 import requests
@@ -66,78 +63,19 @@ def submit_once() -> None:
         detail = response.text or response.reason
         raise SystemExit(f"Submission failed: {response.status_code} {detail}")
 
-
-def encrypt_strategy(recipient: str, source: Path, output: Path) -> None:
-    if not source.exists():
-        raise SystemExit(f"{source} not found. Create or decrypt your strategy first.")
-
-    print(f"[encrypt] Encrypting {source} for '{recipient}' → {output}", flush=True)
-    subprocess.run(
-        [
-            "gpg",
-            "--yes",
-            "--batch",
-            "--output",
-            str(output),
-            "--encrypt",
-            "--recipient",
-            recipient,
-            str(source),
-        ],
-        check=True,
-    )
-
-    secret = subprocess.run(
-        ["gpg", "--armor", "--export-secret-keys", recipient],
-        capture_output=True,
-        check=True,
-    ).stdout
-
-    asc_path = Path("private-key.asc")
-    asc_b64_path = Path("private-key.asc.b64")
-    asc_path.write_bytes(secret)
-    asc_b64_path.write_text(base64.b64encode(secret).decode("ascii"))
-
-    print(f"[encrypt] Exported secret key to {asc_path} and {asc_b64_path}", flush=True)
-    print(
-        "[encrypt] Commit only the .gpg file. Add the base64 key and passphrase "
-        "to GitHub secrets, then remove the plaintext copy before pushing.",
-        flush=True,
-    )
-
-
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Bot utility CLI.")
-    sub = parser.add_subparsers(dest="command")
-
-    run_parser = sub.add_parser("run", help="Execute strategy once (default).")
-    run_parser.set_defaults(func=lambda _: submit_once())
-
-    encrypt_parser = sub.add_parser("encrypt", help="Encrypt strategy.py with GPG.")
-    encrypt_parser.add_argument("--recipient", required=True, help="GPG key identifier.")
-    encrypt_parser.add_argument(
-        "--source",
-        default="strategy.py",
-        type=Path,
-        help="Plaintext strategy file.",
+    parser = argparse.ArgumentParser(description="Run the bot once against the server.")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Explicit flag for single submission (default behaviour).",
     )
-    encrypt_parser.add_argument(
-        "--output",
-        default="strategy.py.gpg",
-        type=Path,
-        help="Encrypted output file.",
-    )
-    encrypt_parser.set_defaults(func=lambda args: encrypt_strategy(args.recipient, args.source, args.output))
-
     return parser.parse_args()
 
 
 def main() -> None:
-    args = parse_args()
-    if not getattr(args, "command", None):
-        submit_once()
-    else:
-        args.func(args)
+    parse_args()
+    submit_once()
 
 
 if __name__ == "__main__":
