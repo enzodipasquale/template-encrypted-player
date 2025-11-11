@@ -9,6 +9,7 @@ Use this starter when you want a public repository (free GitHub Actions minutes)
 - `bot.py` – helper CLI: `run` submits once, `encrypt` rebuilds the `.gpg` artefact and exports the secret key.
 - `register.py` – run locally once to claim your player name on the server.
 - `.github/workflows/play_strategy.yml` – scheduled workflow (every five minutes) that decrypts, runs, and cleans up.
+- `.github/workflows/register_player.yml` – manual workflow to register this player once using the stored secrets.
 - `.gitignore` – ignores `private-key.asc` artefacts and virtualenv clutter.
 - `requirements.txt` – minimal dependency list (`requests`, `numpy`).
 - `scripts/setup_encryption.py` – one-shot helper to generate/refresh the encrypted payload.
@@ -58,29 +59,24 @@ Use this starter when you want a public repository (free GitHub Actions minutes)
    - `GPG_PASSPHRASE`
    - `PLAYER_NAME` (the display name you will register)
 
-7. **Register once**
-   - Export `SERVER_URL`, `GITHUB_TOKEN`, and `PLAYER_NAME` in your terminal.
-   - Run `python register.py` to create (or confirm) your player on the server.
-
-8. **Commit and push**
+7. **Commit and push**
    - Commit the encrypted payload and template files (not the plaintext strategy or key files).
    - Trigger “Play Strategy” manually once to confirm the decrypt → run → cleanup path.
 
+8. **Register via GitHub Actions**
+   - Open the Actions tab in your fork.
+   - Run the “Register Player” workflow once; it uses `SERVER_URL`, `GAME_TOKEN`, and `PLAYER_NAME` secrets to call `/register`.
+
 ## Register once (manual step)
 
-Registration now happens outside GitHub Actions. After exporting the same variables you set as secrets:
+Registration is now triggered by the `Register Player` workflow described above. Re-run it whenever you change `PLAYER_NAME`. For local smoke tests:
 
 ```bash
-export SERVER_URL="https://your-server.example"
-export GITHUB_TOKEN="ghp_xxx"    # same token stored as GAME_TOKEN
-PLAYER_NAME="your-visible-name"
-
-python register.py      # register once
-python bot.py run       # smoke-test a single submission
-# python bot.py encrypt --recipient "YOUR NAME (penalty bot)"  # when strategy changes
+export SERVER_URL=...
+export GITHUB_TOKEN=...
+export PLAYER_NAME=...
+python bot.py
 ```
-
-Run `python register.py` whenever you change the display name. Keep the returned `player_id` for reference.
 
 ## Local testing
 
