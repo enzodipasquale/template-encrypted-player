@@ -25,9 +25,9 @@ Use this template when you want a public repository (free GitHub Actions minutes
       - Run: `python scripts/setup_encryption.py`
       - When prompted, enter a passphrase (remember it - you'll need it for step 3c)
       - This creates:
-        - `strategy.py.gpg`
-        - `private-key.asc` (GPG private key - needed to generate base64 version)
-        - `private-key.asc.b64` (base64-encoded GPG key - needed for GitHub secrets)
+        - `strategy.py.gpg` (encrypted file)
+        - `private-key.asc` (GPG private key)
+        - `private-key.asc.b64` (for GitHub secret)
    
    c. **Add GPG secrets to GitHub:**
       - In **Settings → Secrets and variables → Actions**, add:
