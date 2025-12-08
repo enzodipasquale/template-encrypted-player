@@ -33,8 +33,9 @@ Use this template when you want a public repository (free GitHub Actions minutes
       - **Security:** Delete `private-key.asc` and `private-key.asc.b64` from your local machine after copying.
 
 4. **Encrypt your strategy and commit:**
-   - Edit `strategy.py` with your strategy logic
+   - Edit `strategy.py` with your strategy logic (this file is in `.gitignore` and won't be committed)
    - Run: `python scripts/setup_encryption.py --recipient "Your Name"` (use the same name you used in step 3a)
+   - This creates `strategy.py.gpg` (encrypted) and `private-key.asc.b64` (if you need to update secrets)
    - Run: `git restore strategy.py` (removes plaintext from working directory)
    - Run: `git add strategy.py.gpg` (add only the encrypted file)
    - Run: `git commit -m "Add encrypted strategy" && git push`
