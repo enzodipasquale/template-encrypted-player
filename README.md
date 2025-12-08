@@ -6,27 +6,7 @@ Use this template when you want a public repository (free GitHub Actions minutes
 
 1. **Fork this repository** – Fork it to your own GitHub account so GitHub Actions can run your player automatically.
 
-2. **Set up GPG encryption** (one-time setup):
-   
-   a. **Create a GPG key:**
-      ```bash
-      gpg --quick-generate-key "YOUR NAME (penalty bot)" rsa4096 sign,encrypt 1y
-      ```
-      Remember the passphrase; you'll store it as a secret.
-   
-   b. **Export the private key:**
-      ```bash
-      gpg --armor --export-secret-keys "YOUR NAME (penalty bot)" > private-key.asc
-      base64 private-key.asc > private-key.asc.b64
-      ```
-   
-   c. **Encrypt your strategy:**
-      - Edit `strategy.py` with your strategy logic
-      - Run: `python scripts/setup_encryption.py --recipient "YOUR NAME (penalty bot)"`
-      - This creates `strategy.py.gpg` (the encrypted file you'll commit)
-      - **Important:** Stash or restore `strategy.py` before committing so the plaintext never lands in git
-
-3. **Add repository secrets** – In **Settings → Secrets and variables → Actions** create:
+2. **Add repository secrets** – In **Settings → Secrets and variables → Actions** create:
    - `PLAYER_NAME` – the public name you want the server to display
    - `SERVER_URL` – the base UBX server URL
    - `GAME_TOKEN` – a fine-grained GitHub Personal Access Token with:
@@ -35,12 +15,35 @@ Use this template when you want a public repository (free GitHub Actions minutes
        - `Actions: Read and write` (required - to trigger workflows via repository_dispatch)
        - `Workflows: Read and write` (required - for workflow management)
        - `Contents: Read and write` (required - for repository access)
-   - `GPG_PRIVATE_KEY_B64` – paste the contents of `private-key.asc.b64` (from step 2b)
-   - `GPG_PASSPHRASE` – the passphrase you entered when creating the GPG key (from step 2a)
-   
-   **Security:** Delete `private-key.asc` and `private-key.asc.b64` from your local machine after copying to GitHub secrets.
 
-4. **Commit and push:**
+3. **Set up GPG encryption** (one-time setup):
+   
+   a. **Create a GPG key:**
+      ```bash
+      gpg --quick-generate-key "YOUR NAME (penalty bot)" rsa4096 sign,encrypt 1y
+      ```
+      When prompted, enter a passphrase. You'll add this passphrase as the `GPG_PASSPHRASE` secret in step 3c.
+   
+   b. **Export and encode the private key:**
+      ```bash
+      gpg --armor --export-secret-keys "YOUR NAME (penalty bot)" > private-key.asc
+      base64 private-key.asc > private-key.asc.b64
+      ```
+      Add the contents of `private-key.asc.b64` as the `GPG_PRIVATE_KEY_B64` secret in GitHub Actions.
+   
+   c. **Add GPG secrets to GitHub:**
+      - In **Settings → Secrets and variables → Actions**, add:
+        - `GPG_PRIVATE_KEY_B64` – paste the contents of `private-key.asc.b64` (from step 3b)
+        - `GPG_PASSPHRASE` – the passphrase you entered when creating the GPG key (from step 3a)
+      - **Security:** Delete `private-key.asc` and `private-key.asc.b64` from your local machine after copying to GitHub secrets.
+
+4. **Encrypt your strategy:**
+   - Edit `strategy.py` with your strategy logic
+   - Run: `python scripts/setup_encryption.py --recipient "YOUR NAME (penalty bot)"`
+   - This creates `strategy.py.gpg` (the encrypted file you'll commit)
+   - **Important:** Stash or restore `strategy.py` before committing so the plaintext never lands in git
+
+5. **Commit and push:**
    - Commit `strategy.py.gpg` and template files (NOT `strategy.py` or key files)
    - Push to your forked repository
 
