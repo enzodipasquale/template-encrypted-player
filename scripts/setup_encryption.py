@@ -122,6 +122,13 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    
+    if not args.recipient:
+        raise SystemExit(
+            "GPG recipient name required. Either:\n"
+            "  • Set PLAYER_NAME environment variable, or\n"
+            "  • Use --recipient 'Your Name' argument"
+        )
 
     passphrase = getpass.getpass("GPG passphrase (for new key or future reference): ")
     if not passphrase:
