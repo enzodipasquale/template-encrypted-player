@@ -114,6 +114,7 @@ Your `strategy(state)` function must return a dictionary with two maps, one for 
 {
   "shoot": { "player-B": 2, "player-C": 0 },
   "keep":  { "player-B": 1, "player-C": 1 }
+}
 ```
 where
 - `shoot` lists the direction (integers `0`, `1`, or `2`) you will shoot against each opponent.
