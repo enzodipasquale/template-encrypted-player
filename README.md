@@ -18,24 +18,19 @@ Use this template when you want a public repository (free GitHub Actions minutes
 
 3. **Set up GPG encryption** (one-time setup):
    
-   a. **Create a GPG key:**
+   a. **Create a GPG key and export it:**
       ```bash
       gpg --quick-generate-key "YOUR NAME (penalty bot)" rsa4096 sign,encrypt 1y
-      ```
-      When prompted, enter a passphrase. You'll add this passphrase as the `GPG_PASSPHRASE` secret in step 3c.
-   
-   b. **Export and encode the private key:**
-      ```bash
       gpg --armor --export-secret-keys "YOUR NAME (penalty bot)" > private-key.asc
       base64 private-key.asc > private-key.asc.b64
       ```
-      Add the contents of `private-key.asc.b64` as the `GPG_PRIVATE_KEY_B64` secret in GitHub Actions.
+      When creating the key, enter a passphrase (remember it for step 3b).
    
-   c. **Add GPG secrets to GitHub:**
+   b. **Add GPG secrets to GitHub:**
       - In **Settings → Secrets and variables → Actions**, add:
-        - `GPG_PRIVATE_KEY_B64` – paste the contents of `private-key.asc.b64` (from step 3b)
-        - `GPG_PASSPHRASE` – the passphrase you entered when creating the GPG key (from step 3a)
-      - **Security:** Delete `private-key.asc` and `private-key.asc.b64` from your local machine after copying to GitHub secrets.
+        - `GPG_PRIVATE_KEY_B64` – paste the contents of `private-key.asc.b64`
+        - `GPG_PASSPHRASE` – the passphrase you entered when creating the GPG key
+      - **Security:** Delete `private-key.asc` and `private-key.asc.b64` from your local machine after copying.
 
 4. **Encrypt your strategy:**
    - Edit `strategy.py` with your strategy logic
