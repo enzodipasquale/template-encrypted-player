@@ -39,8 +39,8 @@ Use this template when you want a public repository (free GitHub Actions minutes
    
    d. **Commit encrypted strategy:**
       - **Important:** Only commit `strategy.py.gpg` - do NOT commit changes to `strategy.py`
-      - Run: `git add strategy.py.gpg` (add only the encrypted file)
-      - Run: `git commit -m "Add encrypted strategy" && git push`
+      - Add only the encrypted file: `git add strategy.py.gpg`
+      - Commit and push: `git commit -m "Add encrypted strategy" && git push`
 
 ## 2. Registration
 
