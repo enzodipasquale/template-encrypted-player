@@ -92,17 +92,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Generate/refresh the encrypted strategy payload."
     )
-    # Try to get PLAYER_NAME from environment or positional argument
-    player_name = os.getenv("PLAYER_NAME", "").strip()
-    parser.add_argument(
-        "player_name",
-        nargs="?",
-        default=player_name,
-        help="Player name to use as GPG key identity (defaults to PLAYER_NAME from environment).",
-    )
+    # Use a fixed GPG key name - doesn't need to be user-specific
     parser.add_argument(
         "--recipient",
-        help="GPG identity to use (overrides player_name if provided).",
+        default="Player Bot",
+        help="GPG identity to use (defaults to 'Player Bot').",
     )
     parser.add_argument(
         "--expire",
@@ -126,16 +120,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    
-    # Use --recipient if provided, otherwise use player_name positional arg
-    recipient = args.recipient or args.player_name
-    
-    if not recipient:
-        raise SystemExit(
-            "GPG recipient name required. Either:\n"
-            "  • Set PLAYER_NAME environment variable, or\n"
-            "  • Pass player name as argument: python scripts/setup_encryption.py 'Your Player Name'"
-        )
+    recipient = args.recipient
 
     passphrase = getpass.getpass("GPG passphrase (for new key or future reference): ")
     if not passphrase:

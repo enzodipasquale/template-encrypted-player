@@ -22,7 +22,7 @@ Use this template when you want a public repository (free GitHub Actions minutes
       - Edit `strategy.py` with your strategy logic
    
    b. **Encrypt your strategy:**
-      - Run: `python scripts/setup_encryption.py "Your Player Name"`
+      - Run: `python scripts/setup_encryption.py`
       - When prompted, enter a passphrase (remember it - you'll need it for step 3c)
       - This creates:
         - `strategy.py.gpg` (encrypted file - commit this)
