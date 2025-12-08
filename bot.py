@@ -22,16 +22,20 @@ def load_strategy():
 
 def submit_once() -> None:
     server_url = os.getenv("SERVER_URL")
-    github_token = os.getenv("GITHUB_TOKEN")
+    github_token = os.getenv("GAME_TOKEN")
     player_name = os.getenv("PLAYER_NAME")
 
     if not server_url:
         raise SystemExit("SERVER_URL env var required")
+    if not player_name:
+        raise SystemExit("PLAYER_NAME env var required")
+    if not github_token:
+        raise SystemExit("GAME_TOKEN env var required")
 
     strategy_func = load_strategy()
 
-    headers = {"Authorization": f"Bearer {github_token}"} if github_token else {}
-    params = {"player_name": player_name} if player_name else None
+    headers = {"Authorization": f"Bearer {github_token}"}
+    params = {"player_name": player_name}
 
     status = requests.get(
         f"{server_url}/status",
@@ -39,18 +43,24 @@ def submit_once() -> None:
         params=params,
         timeout=10,
     )
+    if not status.ok:
+        error_detail = status.text or status.reason
+        raise SystemExit(
+            f"Failed to get game status: {status.status_code} {error_detail}\n"
+            f"URL: {server_url}/status?player_name={player_name}\n"
+            f"Check that GAME_TOKEN and PLAYER_NAME secrets are set correctly in GitHub."
+        )
     status.raise_for_status()
     payload: Dict[str, Any] = status.json()
 
     action = strategy_func(payload)
 
-    submit_headers = {"Content-Type": "application/json"}
-    if github_token:
-        submit_headers["Authorization"] = f"Bearer {github_token}"
+    submit_headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {github_token}",
+    }
 
-    body: Dict[str, Any] = {"action": action}
-    if player_name:
-        body["player_name"] = player_name
+    body: Dict[str, Any] = {"action": action, "player_name": player_name}
 
     response = requests.post(
         f"{server_url}/action",
