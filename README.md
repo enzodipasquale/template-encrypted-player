@@ -38,9 +38,9 @@ Use this template when you want a public repository (free GitHub Actions minutes
       - **Security:** Delete `private-key.asc` and `private-key.asc.b64` from your local machine after copying.
    
    d. **Commit encrypted strategy:**
-      - **Important:** Only commit `strategy.py.gpg` - do NOT commit changes to `strategy.py`
       - Add only the encrypted file: `git add strategy.py.gpg`
       - Commit and push: `git commit -m "Add encrypted strategy" && git push`
+      - **Important:** Only commit `strategy.py.gpg` - do NOT commit changes to `strategy.py`
 
 ## 2. Registration
 
