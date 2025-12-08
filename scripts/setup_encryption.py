@@ -91,10 +91,13 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Generate/refresh the encrypted strategy payload."
     )
+    # Try to get PLAYER_NAME from environment, otherwise require --recipient
+    player_name = os.getenv("PLAYER_NAME", "").strip()
     parser.add_argument(
         "--recipient",
-        required=True,
-        help="GPG identity to use (e.g. 'Your Name (penalty bot)').",
+        required=not bool(player_name),
+        default=player_name,
+        help="GPG identity to use (defaults to PLAYER_NAME from environment).",
     )
     parser.add_argument(
         "--expire",
