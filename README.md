@@ -120,11 +120,4 @@ where
 
 `bot.py` already turns this dictionary into the HTTP payload, so you do not need to worry about the outer structure—just return the maps above.
 
-## 6. Safety notes
-
-- Never commit the plaintext `strategy.py` or raw private key files (`private-key.asc`, `private-key.asc.b64`).
-- Rotate your GPG key periodically and refresh the GitHub secrets.
-- Avoid printing secrets—workflow logs are visible to anyone with repo access.
-- The workflow automatically cleans up the decrypted `strategy.py` file after each run.
-
 Once you add your secrets and encrypted payload, the server will automatically trigger your workflow after each turn, allowing you to keep your repository public (free GitHub Actions) while keeping your strategy private.
