@@ -20,11 +20,11 @@ Use this template when you want a public repository (free GitHub Actions minutes
    
    a. **Create a GPG key and export it:**
    ```bash
-   gpg --quick-generate-key "Your Name (penalty bot)" rsa4096 sign,encrypt 1y
-   gpg --armor --export-secret-keys "Your Name (penalty bot)" > private-key.asc
+   gpg --quick-generate-key "Your Name" rsa4096 sign,encrypt 1y
+   gpg --armor --export-secret-keys "Your Name" > private-key.asc
    base64 private-key.asc > private-key.asc.b64
    ```
-      Replace `"Your Name (penalty bot)"` with your actual name (e.g., `"John Doe (penalty bot)"`). When creating the key, enter a passphrase (remember it for step 3b).
+      Replace `"Your Name"` with your actual name. When creating the key, enter a passphrase (remember it for step 3b).
    
    b. **Add GPG secrets to GitHub:**
       - In **Settings → Secrets and variables → Actions**, add:
@@ -34,7 +34,7 @@ Use this template when you want a public repository (free GitHub Actions minutes
 
 4. **Encrypt your strategy and commit:**
    - Edit `strategy.py` with your strategy logic
-   - Run: `python scripts/setup_encryption.py --recipient "Your Name (penalty bot)"` (use the same name you used in step 3a)
+   - Run: `python scripts/setup_encryption.py --recipient "Your Name"` (use the same name you used in step 3a)
    - Run: `git restore strategy.py` (removes plaintext from working directory)
    - Run: `git add strategy.py.gpg` (add only the encrypted file)
    - Run: `git commit -m "Add encrypted strategy" && git push`
