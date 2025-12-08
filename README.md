@@ -19,11 +19,11 @@ Use this template when you want a public repository (free GitHub Actions minutes
 3. **Set up GPG encryption** (one-time setup):
    
    a. **Create a GPG key and export it:**
-      ```bash
-      gpg --quick-generate-key "YOUR NAME (penalty bot)" rsa4096 sign,encrypt 1y
-      gpg --armor --export-secret-keys "YOUR NAME (penalty bot)" > private-key.asc
-      base64 private-key.asc > private-key.asc.b64
-      ```
+   ```bash
+   gpg --quick-generate-key "YOUR NAME (penalty bot)" rsa4096 sign,encrypt 1y
+   gpg --armor --export-secret-keys "YOUR NAME (penalty bot)" > private-key.asc
+   base64 private-key.asc > private-key.asc.b64
+   ```
       When creating the key, enter a passphrase (remember it for step 3b).
    
    b. **Add GPG secrets to GitHub:**
@@ -33,10 +33,11 @@ Use this template when you want a public repository (free GitHub Actions minutes
       - **Security:** Delete `private-key.asc` and `private-key.asc.b64` from your local machine after copying.
 
 4. **Encrypt your strategy** (required):
-   - Edit `strategy.py` with your strategy logic (or use the default random strategy)
+   - Edit `strategy.py` with your strategy logic (or keep the default random strategy)
    - Run: `python scripts/setup_encryption.py --recipient "YOUR NAME (penalty bot)"`
-   - This creates `strategy.py.gpg` encrypted with your GPG key (replace the template placeholder)
-   - **Important:** Stash or restore `strategy.py` before committing so the plaintext never lands in git
+   - The script will encrypt `strategy.py` and create `strategy.py.gpg` (this is the file you'll commit)
+   - **Before committing:** Run `git restore strategy.py` or `git stash` to remove the plaintext `strategy.py` from your working directory
+   - Only commit `strategy.py.gpg`, never commit `strategy.py`
 
 5. **Commit and push:**
    - Commit `strategy.py.gpg` and template files (NOT `strategy.py` or key files)
