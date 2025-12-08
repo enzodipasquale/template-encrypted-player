@@ -47,8 +47,6 @@ Register your player by running the registration workflow via GitHub Actions:
 3. Click **Run workflow** → **Run workflow** button
 4. The workflow will register your player using the secrets you configured
 
-Once registered, the server will automatically trigger your workflow after each turn.
-
 ## 3. What the scripts do
 
 The scripts interact with the game server via REST API endpoints:
