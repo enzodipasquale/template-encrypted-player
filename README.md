@@ -23,7 +23,6 @@ Use this template when you want a public repository (free GitHub Actions minutes
    
    b. **Encrypt your strategy:**
       - Run: `python scripts/setup_encryption.py --recipient "Your Name"`
-      - Replace `"Your Name"` with your actual name (e.g., `"John Doe"`)
       - When prompted, enter a passphrase (remember it - you'll need it for step 3c)
       - This creates:
         - `strategy.py.gpg` (encrypted file - commit this)
