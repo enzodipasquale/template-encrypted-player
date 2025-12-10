@@ -1,144 +1,80 @@
 #!/usr/bin/env python3
-"""Prepare the encrypted payload and helper secrets in a single step."""
+"""Prepare the encrypted payload with a single encryption key."""
 
 from __future__ import annotations
 
 import argparse
 import base64
-import getpass
-import os
-import subprocess
 import sys
 from pathlib import Path
 
-
-def run(cmd: list[str], *, capture: bool = False) -> subprocess.CompletedProcess[bytes]:
-    return subprocess.run(
-        cmd,
-        check=True,
-        capture_output=capture,
-    )
+from cryptography.fernet import Fernet
 
 
-def key_exists(recipient: str) -> bool:
-    try:
-        subprocess.run(
-            ["gpg", "--batch", "--list-secret-keys", recipient],
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        return True
-    except subprocess.CalledProcessError:
-        return False
+def generate_key() -> str:
+    """Generate a new Fernet encryption key."""
+    return Fernet.generate_key().decode("ascii")
 
 
-def generate_key(recipient: str, passphrase: str, expire: str) -> None:
-    print(f"[setup] Generating GPG key for '{recipient}'", flush=True)
-    run(
-        [
-            "gpg",
-            "--batch",
-            "--passphrase",
-            passphrase,
-            "--pinentry-mode",
-            "loopback",
-            "--quick-gen-key",
-            recipient,
-            "rsa4096",
-            "sign,encrypt",
-            expire,
-        ]
-    )
-
-
-def export_secret_key(recipient: str) -> None:
-    print("[setup] Exporting private key artefacts", flush=True)
-    secret = run(
-        ["gpg", "--armor", "--export-secret-keys", recipient],
-        capture=True,
-    ).stdout
-
-    asc_path = Path("private-key.asc")
-    asc_b64_path = Path("private-key.asc.b64")
-
-    asc_path.write_bytes(secret)
-    asc_b64_path.write_text(base64.b64encode(secret).decode("ascii"))
-
-    print(f"[setup] Wrote {asc_path} and {asc_b64_path}", flush=True)
-
-
-def encrypt_strategy(recipient: str, source: Path, output: Path) -> None:
+def encrypt_strategy(key: str, source: Path, output: Path) -> None:
+    """Encrypt the strategy file using Fernet."""
     if not source.exists():
-        raise SystemExit(f"{source} not found. Create or decrypt your strategy first.")
+        raise SystemExit(f"{source} not found. Create your strategy first.")
 
     print(f"[setup] Encrypting {source} → {output}", flush=True)
-    run(
-        [
-            "gpg",
-            "--batch",
-            "--yes",
-            "--output",
-            str(output),
-            "--encrypt",
-            "--recipient",
-            recipient,
-            str(source),
-        ]
-    )
+
+    fernet = Fernet(key.encode("ascii"))
+    plaintext = source.read_bytes()
+    encrypted = fernet.encrypt(plaintext)
+    output.write_bytes(encrypted)
+
+    print(f"[setup] ✅ Encrypted successfully", flush=True)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate/refresh the encrypted strategy payload."
-    )
-    # Use a fixed GPG key name - doesn't need to be user-specific
-    parser.add_argument(
-        "--recipient",
-        default="Player Bot",
-        help="GPG identity to use (defaults to 'Player Bot').",
-    )
-    parser.add_argument(
-        "--expire",
-        default="1y",
-        help="GPG key expiry (default: 1y). Ignored if the key already exists.",
+        description="Encrypt your strategy file with a single encryption key."
     )
     parser.add_argument(
         "--source",
         default="strategy.py",
         type=Path,
-        help="Plaintext strategy file.",
+        help="Plaintext strategy file (default: strategy.py).",
     )
     parser.add_argument(
         "--output",
-        default="strategy.py.gpg",
+        default="strategy.py.encrypted",
         type=Path,
-        help="Encrypted output file.",
+        help="Encrypted output file (default: strategy.py.encrypted).",
+    )
+    parser.add_argument(
+        "--key",
+        help="Encryption key (if not provided, a new one will be generated).",
     )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    recipient = args.recipient
 
-    passphrase = getpass.getpass("GPG passphrase (for new key or future reference): ")
-    if not passphrase:
-        raise SystemExit("Passphrase cannot be empty.")
-
-    if not key_exists(recipient):
-        generate_key(recipient, passphrase, args.expire)
+    # Generate or use provided key
+    if args.key:
+        encryption_key = args.key
+        print("[setup] Using provided encryption key", flush=True)
     else:
-        print(f"[setup] Reusing existing GPG key '{recipient}'", flush=True)
+        encryption_key = generate_key()
+        print("[setup] Generated new encryption key", flush=True)
 
-    encrypt_strategy(recipient, args.source, args.output)
-    export_secret_key(recipient)
+    # Encrypt the strategy
+    encrypt_strategy(encryption_key, args.source, args.output)
 
     print(
-        "\nNext steps:\n"
-        "  • Add private-key.asc.b64 to repo secret GPG_PRIVATE_KEY_B64\n"
-        "  • Store the passphrase you just entered in GPG_PASSPHRASE\n"
-        "  • Delete private-key.asc and private-key.asc.b64 after copying\n",
+        "\n✅ Next steps:\n"
+        f"  • Add this encryption key to GitHub Secrets → ENCRYPTION_KEY:\n"
+        f"    {encryption_key}\n"
+        f"  • Commit the encrypted file: git add {args.output}\n"
+        f"  • Commit and push: git commit -m 'Add encrypted strategy' && git push\n"
+        f"  • ⚠️  Important: Only commit {args.output} - do NOT commit {args.source}\n",
         flush=True,
     )
 
@@ -146,7 +82,6 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    except subprocess.CalledProcessError as exc:
-        sys.stderr.write(exc.stderr.decode() if exc.stderr else str(exc))
-        sys.exit(exc.returncode)
-
+    except Exception as exc:
+        sys.stderr.write(f"Error: {exc}\n")
+        sys.exit(1)

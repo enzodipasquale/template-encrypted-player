@@ -16,23 +16,21 @@ Use this template when you want a public repository (free GitHub Actions minutes
        - `Workflows: Read and write` (required - for workflow management)
        - `Contents: Read and write` (required - for repository access)
 
-3. **Set up GPG encryption and encrypt your strategy:**
+3. **Set up encryption and encrypt your strategy:**
    
    a. **Edit your strategy:**
       - Edit `strategy.py` with your strategy logic
    
-   b. **Encrypt your strategy and add GPG secrets:**
+   b. **Encrypt your strategy:**
       - Run: `python scripts/setup_encryption.py`
-      - When prompted, enter a passphrase
+      - The script will generate an encryption key and display it
       - In **Settings → Secrets and variables → Actions**, add:
-        - `GPG_PRIVATE_KEY_B64` – paste the contents of `private-key.asc.b64`
-        - `GPG_PASSPHRASE` – the passphrase you entered above
-      - Delete `private-key.asc` and `private-key.asc.b64` from your local machine
-   
-   c. **Commit encrypted strategy:**
-      - Add only the encrypted file: `git add strategy.py.gpg`
+        - `ENCRYPTION_KEY` – paste the encryption key shown by the script
+      - Commit the encrypted file: `git add strategy.py.encrypted`
       - Commit and push: `git commit -m "Add encrypted strategy" && git push`
-      - **Important:** Only commit `strategy.py.gpg` - do NOT commit changes to `strategy.py`
+      - **Important:** Only commit `strategy.py.encrypted` - do NOT commit changes to `strategy.py`
+   
+   **Note:** If you need to update your strategy later, run `python scripts/setup_encryption.py` again. You can reuse the same `ENCRYPTION_KEY` by passing it with `--key <your-key>`.
 
 ## 2. Registration
 
@@ -49,7 +47,7 @@ The scripts interact with the game server via REST API endpoints:
 - **`register.py`** – Validates required secrets, reads `PLAYER_NAME` from the environment, and sends a POST request to `/register` with your player name and repository information. The server authenticates using your `GAME_TOKEN` and stores your player configuration.
 
 - **`bot.py`** – Executes your game strategy:
-  - Decrypts `strategy.py.gpg` to `strategy.py` (handled by the workflow)
+  - Decrypts `strategy.py.encrypted` to `strategy.py` (handled by the workflow)
   - Sends a GET request to `/status?player_name=<PLAYER_NAME>` to retrieve the current game state (turn, opponents, history), where `<PLAYER_NAME>` is the value from your `PLAYER_NAME` secret
   - Calls your `strategy(state)` function with the game state
   - Sends a POST request to `/action` with your chosen `shoot` and `keep` directions for each opponent
