@@ -2,9 +2,6 @@
 private-key.asc
 private-key.asc.b64
 
-# Plaintext strategy (never commit this!)
-strategy.py
-
 # Python
 .venv/
 __pycache__/
