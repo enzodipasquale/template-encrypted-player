@@ -11,12 +11,9 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-DEFAULT_SERVER_URL = "https://ubx-server-v2-bjyekjjk3a-uc.a.run.app"
-DEFAULT_TOURNAMENT_SLUG = "penalty-pilot"
 
-
-def _env(name, required=False, default=None):
-    value = os.environ.get(name, "").strip() or default
+def _env(name, required=False):
+    value = os.environ.get(name, "").strip()
     if required and not value:
         sys.exit(f"missing required env var: {name}")
     return value or None
@@ -96,11 +93,11 @@ def _jsonable(value):
 
 
 def _server():
-    return _env("SERVER_URL", required=True, default=DEFAULT_SERVER_URL).rstrip("/")
+    return _env("SERVER_URL", required=True).rstrip("/")
 
 
 def _slug():
-    return _env("TOURNAMENT_SLUG", required=True, default=DEFAULT_TOURNAMENT_SLUG)
+    return _env("TOURNAMENT_SLUG", required=True)
 
 
 def _headers():

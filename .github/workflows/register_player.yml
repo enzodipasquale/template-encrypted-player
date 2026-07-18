@@ -4,8 +4,8 @@ on:
   workflow_dispatch: {}
 
 env:
-  SERVER_URL: https://ubx-server-v2-bjyekjjk3a-uc.a.run.app
-  TOURNAMENT_SLUG: penalty-pilot
+  SERVER_URL: ${{ vars.SERVER_URL }}
+  TOURNAMENT_SLUG: ${{ vars.TOURNAMENT_SLUG }}
 
 jobs:
   register:
