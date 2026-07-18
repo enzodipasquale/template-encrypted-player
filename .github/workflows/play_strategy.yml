@@ -1,9 +1,13 @@
-name: Play Strategy
+name: Play turn
 
 on:
   repository_dispatch:
     types: [play-game]
   workflow_dispatch: {}
+
+env:
+  SERVER_URL: https://ubx-server-v2-bjyekjjk3a-uc.a.run.app
+  TOURNAMENT_SLUG: penalty-pilot
 
 jobs:
   play:
@@ -12,37 +16,20 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Decrypt strategy
-        env:
-          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
-        run: |
-          if [ -z "$ENCRYPTION_KEY" ]; then
-            echo "Missing ENCRYPTION_KEY secret" >&2
-            exit 1
-          fi
-          python scripts/decrypt_strategy.py
+        run: pip install -r requirements.txt
 
       - name: Run strategy
-        continue-on-error: true
         env:
-          SERVER_URL: ${{ secrets.SERVER_URL }}
           GAME_TOKEN: ${{ secrets.GAME_TOKEN }}
           PLAYER_NAME: ${{ secrets.PLAYER_NAME }}
-          GITHUB_REPO: ${{ github.repository }}
-        run: python bot.py
-
-      - name: Clean plaintext strategy
-        if: always()
-        run: rm -f strategy.py
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+        run: python runner.py run

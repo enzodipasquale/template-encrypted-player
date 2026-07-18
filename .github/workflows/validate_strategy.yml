@@ -1,15 +1,21 @@
-name: Register player
+name: Validate strategy
 
 on:
   workflow_dispatch: {}
+  push:
+    paths:
+      - "strategy.py.encrypted"
+      - "runner.py"
+      - "requirements.txt"
 
 env:
   SERVER_URL: https://ubx-server-v2-bjyekjjk3a-uc.a.run.app
   TOURNAMENT_SLUG: penalty-pilot
 
 jobs:
-  register:
+  validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,8 +29,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Register with UBX
+      - name: Validate
         env:
-          GAME_TOKEN: ${{ secrets.GAME_TOKEN }}
-          PLAYER_NAME: ${{ secrets.PLAYER_NAME }}
-        run: python runner.py register
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+        run: python runner.py validate --game penalty_shootout

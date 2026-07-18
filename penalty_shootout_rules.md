@@ -1,34 +1,68 @@
 # Penalty Shootout Game Rule
 
-Let N denote the finite set of active players. Server time evolves in discrete turns $(t = 1, 2, …)$. During each turn the platform inspects every unordered pair $(i, j)$ with $i ≠ j$. For the pair $(i, j)$ we read the event as “player i shoots on player j”; note that the reverse pairing $(j, i)$ is also evaluated in the same turn, hence every player $i$ shoots $N-1$ penalties and keeps $N-1$ penalties in each turn.
+Every turn, each player shoots once against every opponent and keeps once against every opponent.
 
-## State space
+## Action
 
-The state at turn $t$ is the set $H(t) = \{h_1, …, h_t\}$. Each $h_r$ contains one entry per player identifier, and each player entry is a mapping of opponents to mini-records:
+Your strategy returns two maps:
 
-```
-player_id → {
-    opponent_id → {
-        "shoot": direction ($0$, $1$, or $2$),
-        "keep": opponent's defence direction ($0$, $1$, or $2$),
-        "outcome": True if the shot scored, False otherwise
-    }
+```json
+{
+  "shoot": {
+    "opponent-id": 2
+  },
+  "keep": {
+    "opponent-id": 1
+  }
 }
 ```
 
-Until a duel resolves, the `outcome` field is omitted (or `null`). The `keep` field always reports the keeper’s choice (the opponent listed in the key).
+Use every opponent ID from `observation["opponent_ids"]` in both maps.
 
-## Action space
+Directions:
 
-At the start of turn t each player i submits an action consisting of two maps:
+```text
+0 = left
+1 = center
+2 = right
+```
 
-- shoot map: opponents → ${0, 1, 2}$
-- keep map: opponents → ${0, 1, 2}$
+## Scoring
 
-The labels $0, 1, 2$ correspond respectively to left, centre, and right.
+For every ordered pair of players `(i, j)`, player `i` shoots against player `j`. The shot direction comes from `i`'s `shoot[j]`; the keeper direction comes from `j`'s `keep[i]`.
 
-## Penalty mechanism
+Each ordered pair has its own hidden 3 by 3 success-probability matrix. Shots are less likely to score when the shooter and keeper choose the same direction. If the shot scores, the shooter receives 1 point. If the shot is saved, the keeper receives 1 point.
 
-For each ordered pair $(i, j)$ with $i \neq j$, there exists a 3 × 3 success-probability matrix $P^{ij}$ whose rows index shooting directions and columns index keeping directions. Matrices are drawn independently for every ordered pair, so in general $P^{ij} \neq P^{ji}$. Each matrix satisfies the dominance property $P^{ij}[d, d] < P^{ij}[u, v]$ for every direction $d$ and any pair $(u, v)$ with $u \neq v$. Intuitively, a shot aimed away from the keeper’s chosen direction strictly improves the conversion probability relative to a shot that matches it. Players do not observe the matrices.
+## Observation
 
-During round $t$ a duel between shooter $i$ and keeper $j$ is determined by their chosen directions. Let $d$ be the shooter’s direction against $j$ and $u$ the keeper’s defence against $i$. The shot succeeds with probability $P^{ij}[d, u]$; success yields a goal for $i$, otherwise $i$ is denied and $j$ records a save. If a goal happens the shooter gets reward $1$ and the keeper $0$, otherwise the shooter gets $0$ and the keeper $1.$
+Your strategy receives only your private observation:
+
+```json
+{
+  "turn": 3,
+  "my_player_id": "your-player-id",
+  "opponent_ids": ["opponent-a", "opponent-b"],
+  "my_score": 4.0,
+  "scores": {
+    "your-player-id": 4.0,
+    "opponent-a": 3.0,
+    "opponent-b": 5.0
+  },
+  "recent_duels": [
+    {
+      "turn": 3,
+      "duels": [
+        {
+          "shooter": "your-player-id",
+          "keeper": "opponent-a",
+          "shoot": 2,
+          "keep": 0,
+          "goal": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+`recent_duels` contains recent shots involving you, either as shooter or keeper. The hidden probability matrices are never revealed.
