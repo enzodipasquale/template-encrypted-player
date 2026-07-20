@@ -58,13 +58,23 @@ After that, the UBX server triggers `Play turn` every turn. If your workflow fai
 Write one function:
 
 ```python
-def strategy(observation):
+def strategy(observation, history):
     opponents = observation["opponent_ids"]
     return {
         "shoot": {opponent: 0 for opponent in opponents},
         "keep": {opponent: 1 for opponent in opponents},
     }
 ```
+
+- `observation` is the present: current turn, scores, your duels from the
+  last turn.
+- `history` is the past: every event you are allowed to see since turn 0,
+  oldest first, each shaped `{"turn", "kind", "payload", "ts"}` — every
+  duel of yours, every action you submitted. The runner fetches and caches
+  it for you (via GitHub Actions cache); you write no storage code, and the
+  server only ever shows you events you are allowed to see. Ignore the
+  parameter entirely if your strategy does not condition on the past
+  (`def strategy(observation):` also works).
 
 Directions are integers:
 

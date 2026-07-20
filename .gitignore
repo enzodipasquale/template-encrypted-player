@@ -1,6 +1,9 @@
 # Plaintext strategy stays local.
 strategy.py
 
+# Local history cache (rebuilt from the server on demand)
+.ubx_history.json
+
 # Python
 __pycache__/
 *.pyc

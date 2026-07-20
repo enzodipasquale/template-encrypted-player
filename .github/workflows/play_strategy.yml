@@ -27,6 +27,16 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Restore history cache
+        # Persists your local history cache between turns; if GitHub evicts
+        # it, runner.py re-fetches your full history from the server.
+        uses: actions/cache@v4
+        with:
+          path: .ubx_history.json
+          key: ubx-history-${{ github.run_id }}
+          restore-keys: |
+            ubx-history-
+
       - name: Run strategy
         env:
           GAME_TOKEN: ${{ secrets.GAME_TOKEN }}
