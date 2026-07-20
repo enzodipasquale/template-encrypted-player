@@ -13,30 +13,23 @@ pip install -r requirements.txt
 python runner.py keygen
 ```
 
-3. In your fork, create these repository variables in Settings -> Secrets and variables -> Actions -> Variables:
+3. Configure your fork under **Settings -> Secrets and variables -> Actions**. Add two **Variables** and three **Secrets** (they live on separate tabs):
 
-| variable | value |
-| --- | --- |
-| `SERVER_URL` | The UBX server URL for the tournament. |
-| `TOURNAMENT_SLUG` | The tournament slug provided by the organizer. |
+| kind | name | value |
+| --- | --- | --- |
+| Variable | `SERVER_URL` | The UBX server URL for the tournament. |
+| Variable | `TOURNAMENT_SLUG` | The tournament slug provided by the organizer. |
+| Secret | `PLAYER_NAME` | Your public display name on the leaderboard. |
+| Secret | `GAME_TOKEN` | Fine-grained GitHub token for this fork, with `Contents: Read and write`. |
+| Secret | `ENCRYPTION_KEY` | The key printed by `python runner.py keygen`. |
 
-4. Create these repository secrets in Settings -> Secrets and variables -> Actions -> Secrets:
+   The URL and slug go under **Variables** (not Secrets) so you can see and fix them later; the workflows read them as `vars`.
 
-| secret | value |
-| --- | --- |
-| `PLAYER_NAME` | Your public display name on the leaderboard. |
-| `GAME_TOKEN` | Fine-grained GitHub personal access token for this fork, with `Contents: Read and write`. |
-| `ENCRYPTION_KEY` | The key printed by `python runner.py keygen`. |
-
-5. Create your local plaintext strategy:
+4. Write your strategy, then encrypt and push. `strategy.py` stays local (gitignored); only the encrypted blob is committed:
 
 ```bash
 cp strategy.example.py strategy.py
-```
-
-6. Edit `strategy.py`, then encrypt and push:
-
-```bash
+# edit strategy.py
 export ENCRYPTION_KEY=<your encryption key>
 export SERVER_URL=<server URL>
 export TOURNAMENT_SLUG=<tournament slug>
@@ -47,9 +40,7 @@ git commit -m "Add strategy"
 git push
 ```
 
-Do not commit `strategy.py`. It is ignored on purpose.
-
-7. In the GitHub Actions tab, run `Register player` once.
+5. In the GitHub Actions tab, run `Register player` once.
 
 After that, the UBX server triggers `Play turn` every turn. If your workflow fails or does not submit in time, the server uses a default random action for that turn.
 
