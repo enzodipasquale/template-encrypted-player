@@ -38,6 +38,12 @@ jobs:
             ubx-history-
 
       - name: Run strategy
+        # A turn runs every few minutes. If the strategy crashes or misses
+        # the window the server just plays a default, so a failed run is not
+        # worth an email every time; the job stays green while this step
+        # shows red in the run for debugging. Missed turns also surface as a
+        # loud warning on the next run (see runner.py).
+        continue-on-error: true
         env:
           GAME_TOKEN: ${{ secrets.GAME_TOKEN }}
           PLAYER_NAME: ${{ secrets.PLAYER_NAME }}
